@@ -2,11 +2,18 @@ package org.jsengine.v8.internal;
 
 import org.jsengine.v8.Internal;
 import org.jsengine.v8.base.OS;
+import org.jsengine.v8.base.Thread;
 
 class Isolate {
+	public static Thread.LocalStorageKey per_isolate_thread_data_key_;
+	public static Thread.LocalStorageKey isolate_key_;
 	private int id_;
-	Isolate() {
+	
+	public static void initializeOncePerProcess() {
+		isolate_key_ = Thread.createThreadLocalKey();
+		per_isolate_thread_data_key_ = Thread.createThreadLocalKey();
 		
+		System.out.println(isolate_key_ + " " + per_isolate_thread_data_key_);
 	}
 	
 	public int id() {

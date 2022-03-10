@@ -3,7 +3,10 @@ package org.jsengine.v8;
 import org.jsengine.v8.base.Mutex;
 import org.jsengine.v8.base.AtomicWord;
 import org.jsengine.v8.base.Bits;
+import org.jsengine.v8.base.RandomNumberGenerator;
+import org.jsengine.v8.base.LeakyObject;
 
+import org.jsengine.Globals.Handle;
 import org.jsengine.utils.Var;
 
 import java.util.function.Function;
@@ -30,11 +33,7 @@ public class Base {
 		kIgnoreIfNull
 	};
 	
-	public static class HANDLE {
-		
-	}
-	
-	public static HANDLE kNoThread = new HANDLE();
+	public static Handle kNoThread = new Handle();
 	
 	public static int relaxedLoad(AtomicWord ptr) {
 		return ptr.get();
@@ -71,7 +70,7 @@ public class Base {
 		}
 	}
 
-	public static <A> void callOnce(OnceType once, Function init_func, A arg) {
+	public static void callOnce(OnceType once, final Function init_func, final Object arg) {
 		if(once.get() != OnceState.ONCE_STATE_DONE.value()) {
 			callOnceImpl(once, new Function<Object, Void>() {
 				public Void apply(Object object) {
@@ -137,5 +136,11 @@ public class Base {
 		seed = seed * 5 + 0xE6546B64;
 		
 		return seed;
+	}
+	
+	public static LeakyObject<RandomNumberGenerator> object;
+	public static RandomNumberGenerator getPlatformRandomNumberGenerator() {
+		if(object == null) object = new LeakyObject<RandomNumberGenerator>(new RandomNumberGenerator());
+		return object.get();
 	}
 }

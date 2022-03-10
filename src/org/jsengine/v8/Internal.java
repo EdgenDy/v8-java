@@ -75,6 +75,42 @@ public class Internal {
 	public static Var<Boolean> FLAG_profile_deserialization = new Var<Boolean>(false);
 	public static Var<Boolean> FLAGDEFAULT_profile_deserialization = new Var<Boolean>(false);
 	
+	public static Var<Boolean> FLAG_enable_sse4_2 = new Var<Boolean>(true);
+	public static Var<Boolean> FLAGDEFAULT_enable_sse4_2 = new Var<Boolean>(true);
+            
+	public static Var<Boolean> FLAG_enable_sse4_1 = new Var<Boolean>(true);
+	public static Var<Boolean> FLAGDEFAULT_enable_sse4_1 = new Var<Boolean>(true);
+
+	public static Var<Boolean> FLAG_enable_sse3 = new Var<Boolean>(true);
+	public static Var<Boolean> FLAGDEFAULT_enable_sse3 = new Var<Boolean>(true);
+	
+	public static Var<Boolean> FLAG_enable_ssse3 = new Var<Boolean>(true);
+	public static Var<Boolean> FLAGDEFAULT_enable_ssse3 = new Var<Boolean>(true);
+
+	public static Var<Boolean> FLAG_enable_sahf = new Var<Boolean>(true);
+	public static Var<Boolean> FLAGDEFAULT_enable_sahf = new Var<Boolean>(true);    
+	
+	public static Var<Boolean> FLAG_enable_avx = new Var<Boolean>(true);
+	public static Var<Boolean> FLAGDEFAULT_enable_avx = new Var<Boolean>(true); 
+
+	public static Var<Boolean> FLAG_enable_fma3 = new Var<Boolean>(true);
+	public static Var<Boolean> FLAGDEFAULT_enable_fma3 = new Var<Boolean>(true); 
+	
+	public static Var<Boolean> FLAG_enable_bmi1 = new Var<Boolean>(true);
+	public static Var<Boolean> FLAGDEFAULT_enable_bmi1 = new Var<Boolean>(true); 
+	
+	public static Var<Boolean> FLAG_enable_bmi2 = new Var<Boolean>(true);
+	public static Var<Boolean> FLAGDEFAULT_enable_bmi2 = new Var<Boolean>(true); 
+	
+	public static Var<Boolean> FLAG_enable_lzcnt = new Var<Boolean>(true);
+	public static Var<Boolean> FLAGDEFAULT_enable_lzcnt = new Var<Boolean>(true); 
+	
+	public static Var<Boolean> FLAG_enable_popcnt = new Var<Boolean>(true);
+	public static Var<Boolean> FLAGDEFAULT_enable_popcnt = new Var<Boolean>(true); 
+	
+	public static Var<String> FLAG_mcpu = new Var<String>("auto");
+	public static Var<String> FLAGDEFAULT_mcpu = new Var<String>("auto");
+	
 	static {
 		flags = new Flag[] {
 			new Flag(Flag.FlagType.TYPE_BOOL, "use_strict", FLAG_use_strict, FLAGDEFAULT_use_strict, "enforce strict mode", false),
@@ -95,7 +131,19 @@ public class Internal {
 			new Flag(Flag.FlagType.TYPE_BOOL, "expose_wasm", FLAG_expose_wasm, FLAGDEFAULT_expose_wasm, "expose wasm interface to JavaScript", false),
 			new Flag(Flag.FlagType.TYPE_BOOL, "interpreted_frames_native_stack", FLAG_interpreted_frames_native_stack, FLAGDEFAULT_interpreted_frames_native_stack, "Show interpreted frames on the native stack (useful for external profilers).", false),
 			new Flag(Flag.FlagType.TYPE_BOOL, "hard_abort", FLAG_hard_abort, FLAGDEFAULT_hard_abort, "abort by crashing", false),
-			new Flag(Flag.FlagType.TYPE_BOOL, "gc_fake_mmap", FLAG_gc_fake_mmap, FLAGDEFAULT_gc_fake_mmap, "Specify the name of the file for fake gc mmap used in ll_prof", false)
+			new Flag(Flag.FlagType.TYPE_STRING, "gc_fake_mmap", FLAG_gc_fake_mmap, FLAGDEFAULT_gc_fake_mmap, "Specify the name of the file for fake gc mmap used in ll_prof", false),
+			new Flag(Flag.FlagType.TYPE_BOOL, "enable_sse4_2", FLAG_enable_sse4_2, FLAGDEFAULT_enable_sse4_2, "enable use of SSE4.2 instructions if available", false),
+			new Flag(Flag.FlagType.TYPE_BOOL, "enable_sse4_1", FLAG_enable_sse4_1, FLAGDEFAULT_enable_sse4_1, "enable use of SSE4.1 instructions if available", false),
+			new Flag(Flag.FlagType.TYPE_BOOL, "enable_sse3", FLAG_enable_sse3, FLAGDEFAULT_enable_sse3, "enable use of SSE3 instructions if available", false),
+			new Flag(Flag.FlagType.TYPE_BOOL, "enable_ssse3", FLAG_enable_ssse3, FLAGDEFAULT_enable_ssse3, "enable use of SSSE3 instructions if available", false),
+			new Flag(Flag.FlagType.TYPE_BOOL, "enable_sahf", FLAG_enable_sahf, FLAGDEFAULT_enable_sahf, "enable use of SAHF instruction if available (X64 only)", false),
+			new Flag(Flag.FlagType.TYPE_BOOL, "enable_avx", FLAG_enable_avx, FLAGDEFAULT_enable_avx, "enable use of AVX instructions if available", false),
+			new Flag(Flag.FlagType.TYPE_BOOL, "enable_fma3", FLAG_enable_fma3, FLAGDEFAULT_enable_fma3, "enable use of FMA3 instructions if available", false),
+			new Flag(Flag.FlagType.TYPE_BOOL, "enable_bmi1", FLAG_enable_bmi1, FLAGDEFAULT_enable_bmi1, "enable use of BMI1 instructions if available", false),
+			new Flag(Flag.FlagType.TYPE_BOOL, "enable_bmi2", FLAG_enable_bmi2, FLAGDEFAULT_enable_bmi2, "enable use of BMI2 instructions if available", false),
+			new Flag(Flag.FlagType.TYPE_BOOL, "enable_lzcnt", FLAG_enable_lzcnt, FLAGDEFAULT_enable_lzcnt, "enable use of LZCNT instruction if available", false),
+			new Flag(Flag.FlagType.TYPE_BOOL, "enable_popcnt", FLAG_enable_popcnt, FLAGDEFAULT_enable_popcnt, "enable use of POPCNT instruction if available", false),
+			new Flag(Flag.FlagType.TYPE_STRING, "mcpu", FLAG_mcpu, FLAGDEFAULT_mcpu, "enable optimization for specific cpu", false)
 		};
 		num_flags = flags.length;
 	}
@@ -135,5 +183,14 @@ public class Internal {
 	
 	public static PageAllocator getPlatformPageAllocator() {
 		return getPageTableInitializer().page_allocator();
+	}
+	
+	public static int xgetbv(int xcr) {
+		return 0x3;
+	}
+	
+	public static boolean OSHasAVXSupport() {
+		int feature_mask = xgetbv(0);
+		return (feature_mask & 0x6) == 0x6;
 	}
 }

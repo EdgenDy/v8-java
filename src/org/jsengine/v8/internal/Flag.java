@@ -58,7 +58,7 @@ public class Flag {
     	return new Var<Integer>(valptr_);
 	}
 
-	Var<Integer> uint64_variable() {
+	public Var<Integer> uint64_variable() {
 		return new Var<Integer>(valptr_);
 	}
 

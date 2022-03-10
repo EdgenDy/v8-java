@@ -57,8 +57,12 @@ public class V8 {
 		}
 		
 		OS.initialize(Internal.FLAG_hard_abort.getValue(), Internal.FLAG_gc_fake_mmap.getValue());
+	
+		if (Internal.FLAG_random_seed.getValue() != 0) //  switch to == (equals) for debugging.
+			Internal.setRandomMmapSeed(Internal.FLAG_random_seed.getValue());
 		
-		if (Internal.FLAG_random_seed.getValue() != 0) {}
+		Isolate.initializeOncePerProcess();
+		CpuFeatures.probe(false);
     }
     // src\init\v8.h:44
     // src\init\v8.cc:116

@@ -1,6 +1,12 @@
 package org.jsengine.v8.base;
 
+import org.jsengine.Globals.Handle;
+import org.jsengine.Globals.Dword;
+import org.jsengine.Globals;
+
 import org.jsengine.v8.Base;
+import org.jsengine.utils.Var;
+
 import java.util.concurrent.Semaphore;
 
 //src\base\platform\platform.h:312
@@ -12,15 +18,9 @@ public abstract class Thread {
 	
 	public abstract void run();
 	
-	public static class LocalStorageKey {
-		private int value_;
-		
+	public static class LocalStorageKey extends Var<Integer> {
 		public LocalStorageKey(int value) {
-			this.value_ = value;
-		}
-		
-		public int value() {
-			return this.value_;
+			super(value);
 		}
 	}
 	
@@ -64,10 +64,15 @@ public abstract class Thread {
 	}
 	
 	public static class PlatformData {
-		public Base.HANDLE thread_;
+		public Handle thread_;
 		public int thread_id_;
-		public PlatformData(Base.HANDLE thread) {
+		public PlatformData(Handle thread) {
 			this.thread_ = thread;
 		}
+	}
+	
+	public static LocalStorageKey createThreadLocalKey() {
+		Dword result = Globals.tlsAlloc();
+		return new LocalStorageKey(result.getValue());
 	}
 }

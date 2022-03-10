@@ -1,5 +1,7 @@
 package org.jsengine.v8.base;
 
+import org.jsengine.v8.Base;
+
 public class OS {
 	public static int allocate_alignment = 0;
 	public static int page_size = 0;
@@ -31,7 +33,7 @@ public class OS {
 	public static void setRandomMmapSeed(int seed) {
 		if(seed != 0) {
 			MutexGuard guard = new MutexGuard(rng_mutex.pointer().getValue());
-			// TODO: implement this method
+			Base.getPlatformRandomNumberGenerator().setSeed(seed);
 		}
 	}
 	
