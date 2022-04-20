@@ -5,6 +5,7 @@ import org.jsengine.v8.Base;
 import org.jsengine.v8.Internal;
 import org.jsengine.v8.base.OS;
 import org.jsengine.v8.tracing.TracingCategoryObserver;
+import org.jsengine.v8.internal.wasm.WasmEngine;
 
 import java.util.function.Function;
 import java.io.File;
@@ -63,6 +64,12 @@ public class V8 {
 		
 		Isolate.initializeOncePerProcess();
 		CpuFeatures.probe(false);
+		ElementsAccessor.initializeOncePerProcess();
+		Bootstrapper.initializeOncePerProcess();
+		
+		CallDescriptors.initializeOncePerProcess();
+		
+		WasmEngine.initializeOncePerProcess();
     }
     // src\init\v8.h:44
     // src\init\v8.cc:116
@@ -75,4 +82,13 @@ public class V8 {
 			}
 		});
     }
+    
+    public static void fatalProcessOutOfMemory(Isolate isolate, String location, boolean is_heap_oom) {
+		// TODO: to be implemented
+		throw new RuntimeException("Error throw in fatalProcessOutOfMemory : " + location);
+	}
+	
+    public static void fatalProcessOutOfMemory(Isolate isolate, String location) {
+		fatalProcessOutOfMemory(isolate, location, false);
+	}
 }
