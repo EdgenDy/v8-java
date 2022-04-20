@@ -47,4 +47,8 @@ public abstract class Platform {
             return 0;
         }
     };
+    
+    public void onCriticalMemoryPressure() {
+    	
+	}
 }

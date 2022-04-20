@@ -4,17 +4,30 @@ import org.jsengine.v8.Base;
 import org.jsengine.v8.PageAllocator;
 import org.jsengine.v8.internal.Flag;
 import org.jsengine.v8.internal.PageAllocatorInitializer;
+import org.jsengine.v8.internal.Vector;
+import org.jsengine.v8.internal.Register;
+import org.jsengine.v8.internal.RegisterCode;
+import org.jsengine.v8.internal.CallInterfaceDescriptorData;
+import org.jsengine.v8.internal.Address;
 import org.jsengine.v8.base.LeakyObject;
+import org.jsengine.v8.base.OS;
 
 import org.jsengine.utils.Var;
 
-// class representation of v8::internal namespace to hold static methods
+// class representation of v8::internal namespace to hold static methods and static variables
 
 public class Internal {
 	public static Base.OnceType init_once = new Base.OnceType();
 	
+	public static Address kNullAddress = new Address(0);
+	
 	public static Flag flags[];
 	public static int num_flags;
+	
+	public static int KB = 1024;
+	public static int MB = KB * KB;
+	public static int GB = KB * KB * KB;
+	public static int kMaxWasmCodeMB = 1024;
 	
 	public static Var<Boolean> FLAG_use_strict = new Var<Boolean>(false);
 	public static Var<Boolean> FLAGDEFAULT_use_strict = new Var<Boolean>(false);
@@ -111,6 +124,19 @@ public class Internal {
 	public static Var<String> FLAG_mcpu = new Var<String>("auto");
 	public static Var<String> FLAGDEFAULT_mcpu = new Var<String>("auto");
 	
+	public static Var<String> FLAG_expose_gc_as = new Var<String>(null);
+	public static Var<String> FLAGDEFAULT_expose_gc_as = new Var<String>(null);
+              
+    public static Var<String> FLAG_expose_cputracemark_as = new Var<String>(null);
+	public static Var<String> FLAGDEFAULT_expose_cputracemark_as = new Var<String>(null);
+	
+	public static Var<Boolean> FLAG_wasm_shared_engine = new Var<Boolean>(true);
+	public static Var<Boolean> FLAGDEFAULT_wasm_shared_engine = new Var<Boolean>(true); 
+	
+	public static Var<Integer> FLAG_wasm_max_code_space = new Var<Integer>(kMaxWasmCodeMB);
+	public static Var<Integer> FLAGDEFAULT_wasm_max_code_space = new Var<Integer>(kMaxWasmCodeMB); 
+	
+	
 	static {
 		flags = new Flag[] {
 			new Flag(Flag.FlagType.TYPE_BOOL, "use_strict", FLAG_use_strict, FLAGDEFAULT_use_strict, "enforce strict mode", false),
@@ -143,10 +169,16 @@ public class Internal {
 			new Flag(Flag.FlagType.TYPE_BOOL, "enable_bmi2", FLAG_enable_bmi2, FLAGDEFAULT_enable_bmi2, "enable use of BMI2 instructions if available", false),
 			new Flag(Flag.FlagType.TYPE_BOOL, "enable_lzcnt", FLAG_enable_lzcnt, FLAGDEFAULT_enable_lzcnt, "enable use of LZCNT instruction if available", false),
 			new Flag(Flag.FlagType.TYPE_BOOL, "enable_popcnt", FLAG_enable_popcnt, FLAGDEFAULT_enable_popcnt, "enable use of POPCNT instruction if available", false),
-			new Flag(Flag.FlagType.TYPE_STRING, "mcpu", FLAG_mcpu, FLAGDEFAULT_mcpu, "enable optimization for specific cpu", false)
+			new Flag(Flag.FlagType.TYPE_STRING, "mcpu", FLAG_mcpu, FLAGDEFAULT_mcpu, "enable optimization for specific cpu", false),
+			new Flag(Flag.FlagType.TYPE_STRING, "expose_gc_as", FLAG_expose_gc_as, FLAGDEFAULT_expose_gc_as, "expose gc extension under the specified name", false),
+			new Flag(Flag.FlagType.TYPE_STRING, "expose_cputracemark_as", FLAG_expose_cputracemark_as, FLAGDEFAULT_expose_cputracemark_as, "expose cputracemark extension under the specified name", false),
+			new Flag(Flag.FlagType.TYPE_BOOL, "wasm_shared_engine", FLAG_wasm_shared_engine, FLAGDEFAULT_wasm_shared_engine, "shares one wasm engine between all isolates within a process", false),
+			new Flag(Flag.FlagType.TYPE_UINT, "wasm_max_code_space", FLAG_wasm_max_code_space, FLAGDEFAULT_wasm_max_code_space, "maximum committed code space for wasm (in MB)", false)
 		};
 		num_flags = flags.length;
 	}
+	
+	
 	
 	public static int flag_hash = 0;
 	
@@ -193,4 +225,111 @@ public class Internal {
 		int feature_mask = xgetbv(0);
 		return (feature_mask & 0x6) == 0x6;
 	}
+	
+	public static String GCFunctionName() {
+		boolean flag_given = FLAG_expose_gc_as.getValue() != null && FLAG_expose_gc_as.getValue().length() != 0;
+		return flag_given ? FLAG_expose_gc_as.getValue() : "gc";
+	}
+	
+	public static int sNPrintF(Vector<Character> str, String format, Object... args) {
+		int result = vSNPrintF(str, format, args);
+		return result;
+	}
+	
+	public static int vSNPrintF(Vector<Character> str, String format, Object... args) {
+		return OS.vSNPrintF((char[]) str.begin(), str.length(), format, args);
+	}
+	
+	public static boolean isValidCpuTraceMarkFunctionName() {
+		return FLAG_expose_cputracemark_as.getValue() != null && FLAG_expose_cputracemark_as.getValue().length() != 0;
+	}
+	
+	public static Register rax = Register.from_code(RegisterCode.kRegCode_rax.ordinal());
+	public static Register rcx = Register.from_code(RegisterCode.kRegCode_rcx.ordinal());
+	public static Register rdx = Register.from_code(RegisterCode.kRegCode_rdx.ordinal());
+	public static Register rbx = Register.from_code(RegisterCode.kRegCode_rbx.ordinal());
+	public static Register rsp = Register.from_code(RegisterCode.kRegCode_rsp.ordinal());
+	public static Register rbp = Register.from_code(RegisterCode.kRegCode_rbp.ordinal());
+	public static Register rsi = Register.from_code(RegisterCode.kRegCode_rsi.ordinal());
+	public static Register rdi = Register.from_code(RegisterCode.kRegCode_rdi.ordinal());
+	public static Register r8 = Register.from_code(RegisterCode.kRegCode_r8.ordinal());
+	public static Register r9 = Register.from_code(RegisterCode.kRegCode_r9.ordinal());
+	public static Register r10 = Register.from_code(RegisterCode.kRegCode_r10.ordinal());
+	public static Register r11 = Register.from_code(RegisterCode.kRegCode_r11.ordinal());
+	public static Register r12 = Register.from_code(RegisterCode.kRegCode_r12.ordinal());
+	public static Register r13 = Register.from_code(RegisterCode.kRegCode_r13.ordinal());
+	public static Register r14 = Register.from_code(RegisterCode.kRegCode_r14.ordinal());
+	public static Register r15 = Register.from_code(RegisterCode.kRegCode_r15.ordinal());
+	
+	public static Register no_reg = Register.no_reg();
+	
+	public static Register kReturnRegister0 = rax;
+	public static Register kReturnRegister1 = rdx;
+	public static Register kReturnRegister2 = r8;
+	public static Register kJSFunctionRegister = rdi;
+	public static Register kContextRegister = rsi;
+	public static Register kAllocateSizeRegister = rdx;
+	public static Register kSpeculationPoisonRegister = r12;
+	public static Register kInterpreterAccumulatorRegister = rax;
+	public static Register kInterpreterBytecodeOffsetRegister = r9;
+	public static Register kInterpreterBytecodeArrayRegister = r14;
+	public static Register kInterpreterDispatchTableRegister = r15;
+
+	public static Register kJavaScriptCallArgCountRegister = rax;
+	public static Register kJavaScriptCallCodeStartRegister = rcx;
+	public static Register kJavaScriptCallTargetRegister = kJSFunctionRegister;
+	public static Register kJavaScriptCallNewTargetRegister = rdx;
+	public static Register kJavaScriptCallExtraArg1Register = rbx;
+	
+	public static Register arg_reg_1 = rcx;
+	public static Register arg_reg_2 = rdx;
+	public static Register arg_reg_3 = r8;
+	public static Register arg_reg_4 = r9;
+	
+	public static Register kRuntimeCallFunctionRegister = rbx;
+	public static Register kRuntimeCallArgCountRegister = rax;
+	public static Register kRuntimeCallArgvRegister = r15;
+	public static Register kWasmInstanceRegister = rsi;
+	
+	// this method does not create an array, it is existed only to align with the v8 c++ codes
+	public static <T> T[] newArray(T[] array) {
+		return array;
+	}
+	
+	public static <T> T[] newArray(T[] array, T default_val) {
+		for(int index = 0, limit = array.length; index < limit; index++) {
+			array[index] = default_val;
+		}
+		return array;
+	}
+	
+	public static void fatalProcessOutOfMemory(org.jsengine.v8.internal.Isolate isolate, String location) {
+		org.jsengine.v8.internal.V8.fatalProcessOutOfMemory(isolate, location, false);
+	}
+	
+	public static int kMaxBuiltinRegisterParams = 5;
+	public static int kMaxTFSBuiltinRegisterParams = kMaxBuiltinRegisterParams;
+	
+	public static void interpreterCEntryDescriptor_InitializePlatformSpecific(CallInterfaceDescriptorData data) {
+		Register registers[] = { Internal.kRuntimeCallArgCountRegister, Internal.kRuntimeCallArgvRegister, Internal.kRuntimeCallFunctionRegister};
+		data.initializePlatformSpecific(registers.length, registers);
+	}
+	
+	public static int kAllocationTries = 2;
+	
+	/*
+	public static Object allocatePages(PageAllocator page_allocator, Object address, int size, int alignment, PageAllocator.Permission access) {
+		Object result = null;
+		for (int i = 0; i < kAllocationTries; ++i) {
+			result = page_allocator.allocatePages(hint, size, alignment, access);
+			if (result != null) break;
+			int request_size = size + alignment - page_allocator.allocatePageSize();
+			//if (!OnCriticalMemoryPressure(request_size)) break;
+		}
+		return result;
+	}*/
+	
+	public static long kPtrComprHeapReservationSize = ((long) 4) * GB;
+	public static long kPtrComprIsolateRootBias = kPtrComprHeapReservationSize / 2;
+	public static long kPtrComprIsolateRootAlignment = ((long) 4) * GB;
 }
