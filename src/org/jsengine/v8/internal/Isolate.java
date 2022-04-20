@@ -4,7 +4,7 @@ import org.jsengine.v8.Internal;
 import org.jsengine.v8.base.OS;
 import org.jsengine.v8.base.Thread;
 
-class Isolate {
+public class Isolate {
 	public static Thread.LocalStorageKey per_isolate_thread_data_key_;
 	public static Thread.LocalStorageKey isolate_key_;
 	private int id_;
@@ -12,9 +12,18 @@ class Isolate {
 	public static void initializeOncePerProcess() {
 		isolate_key_ = Thread.createThreadLocalKey();
 		per_isolate_thread_data_key_ = Thread.createThreadLocalKey();
-		
-		System.out.println(isolate_key_ + " " + per_isolate_thread_data_key_);
 	}
+	
+	// src\execution\isolate.h:512
+	// src\execution\isolate.cc:2815
+	public static Isolate newInstance(IsolateAllocationMode mode) {
+		IsolateAllocator isolate_allocator = new IsolateAllocator(mode);
+		return null;
+	}
+	public static Isolate newInstance() {
+		return newInstance(IsolateAllocationMode.kDefault);
+	}
+	
 	
 	public int id() {
 		return id_;
