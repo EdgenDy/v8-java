@@ -7,6 +7,8 @@ import org.jsengine.v8.internal.tracing.TraceEventHelper;
 import java.util.HashMap;
 
 public class Globals {
+	// on a 64 bit machine (windows)
+	public static int kSystemPointerSize = 8;
 	public static HashMap<String, Object> variables = new HashMap<String, Object>();
 	
 	public static enum CategoryGroupEnabledFlags {
@@ -191,5 +193,35 @@ public class Globals {
 				break;
 			}
 		}
+	}
+	
+	public static int _vsnprintf_s(char[] buffer, int sizeOfBuffer, int count, String format, Object ...argptr) {
+		String result = String.format(format, argptr);
+		char[] array = result.toCharArray();
+		
+		if(buffer.length < array.length) {
+			return buffer.length - array.length;
+		}
+		else {
+			for(int index = 0, limit = array.length; index < limit; index++) {
+				buffer[index] = array[index];
+			}
+		}
+		return (buffer.length - array.length);
+	}
+	
+	public static int kPageSizeBits = 18;
+	
+	
+	public static int roundDown(int x, int m) {
+		return x & -m;
+	}
+	
+	public static long roundDown(long x, long m) {
+		return x & -m;
+	}
+	
+	public static long roundUp(long x, long m) {
+		return roundDown(x + m - 1, m);
 	}
 }
