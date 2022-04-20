@@ -2,6 +2,7 @@ package org.jsengine.v8.base;
 
 import org.jsengine.Globals;
 
+// src/base/cpu.h:32
 public final class CPU {
 	char vendor_[] = new char[13];
 	private int stepping_;
@@ -116,7 +117,8 @@ public final class CPU {
 
 	public boolean is_fp64_mode() { return is_fp64_mode_; }
 	public boolean has_msa() { return has_msa_; }
-  
+	
+// src/base/cpu.cc:300
 	public CPU() {
 		stepping_ = 0;
 		model_ = 0;

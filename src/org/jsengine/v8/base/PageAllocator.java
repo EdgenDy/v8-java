@@ -20,5 +20,8 @@ public class PageAllocator extends org.jsengine.v8.PageAllocator {
         OS.setRandomMmapSeed(seed);
     }
 
+	public Object getRandomMmapAddr() {
+		return OS.getRandomMmapAddr();
+	}
 
 }
