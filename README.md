@@ -1,4 +1,4 @@
-# veight-java
+# v8-java
 
 A java representation of V8 javascript engine. It is used for debugging or learning purposes, you can used it to find out how V8 javascript engine works.
 
