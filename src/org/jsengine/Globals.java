@@ -1,10 +1,16 @@
 package org.jsengine;
 
 import org.jsengine.utils.Var;
+import org.jsengine.utils.Pointer;
 import org.jsengine.v8.Base;
 import org.jsengine.v8.base.AtomicWord;
 import org.jsengine.v8.internal.tracing.TraceEventHelper;
+import org.jsengine.Memory;
+
 import java.util.HashMap;
+import java.util.Scanner;
+import java.io.File;
+
 
 public class Globals {
 	// on a 64 bit machine (windows)
@@ -223,5 +229,54 @@ public class Globals {
 	
 	public static long roundUp(long x, long m) {
 		return roundDown(x + m - 1, m);
+	}
+	
+	public static Pointer<Object> nullptr = new Pointer<Object>(0);
+	
+	public static Pointer<Object> alignedAddress(Pointer<Object> address, long alignment) {
+		return new Pointer<Object>(address.getValue() & ~(alignment - 1));
+	}
+	
+	public static long MEM_RESERVE = 0x00100L;
+	public static long MEM_COMMIT = 0x00200L;
+	public static long MEM_DECOMMIT = 0x00300L;
+	public static long MEM_RELEASE = 0x00400L;
+	public static long PAGE_NOACCESS = 0x00500L;
+	public static long PAGE_READONLY = 0x00600L;
+	public static long PAGE_READWRITE = 0x00700L;
+	public static long PAGE_EXECUTE_READWRITE = 0x00800L;
+	public static long PAGE_EXECUTE_READ = 0x00900L;
+	
+	// windows builtin functions for allocation on the virtual memory.
+	public static Pointer<Object> virtualAlloc(Pointer<Object> hint, long size, long flags, long protect) {
+		if (Globals.MEM_RESERVE == flags)
+			return Memory.reserve(hint.getValue(), size);
+		
+		if (Globals.MEM_COMMIT == flags)
+			return Memory.commit(hint.getValue(), size);
+		
+		System.out.println("Globals::virtualAlloc : unknown flag");
+		return nullptr;
+	}
+	
+	public static boolean virtualFree(Pointer<Object> address, long size, long flags) {
+		return Memory.free(address.getValue(), size);
+	}
+	
+	public static String readFile(String path) {
+		try {
+			Scanner scanner = new Scanner(new File(path));
+			StringBuilder content = new StringBuilder();
+			if (scanner.hasNext()) {
+				content.append(scanner.nextLine());
+				if (scanner.hasNext())
+					content.append("\n");
+			}
+			
+			return content.toString();
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 }

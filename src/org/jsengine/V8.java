@@ -7,4 +7,10 @@ public class V8 {
 	public static void registerExtension(Extension extension) {
 		RegisteredExtension.register(extension);
 	}
+	
+	public static enum MemoryPressureLevel {
+		kNone,
+		kModerate,
+		kCritical
+	};
 }
