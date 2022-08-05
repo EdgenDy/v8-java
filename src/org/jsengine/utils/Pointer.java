@@ -1,5 +1,6 @@
 package org.jsengine.utils;
 
+import org.jsengine.v8.internal.Address;
 import org.jsengine.Memory;
 
 public class Pointer<T> {
@@ -8,8 +9,15 @@ public class Pointer<T> {
 		this.address = address;
 	}
 	
+	public Pointer(Address address) {
+		this(address.value());
+	}
+	
 	public T dereference() {
-		return (T) Memory.load(address).value;
+		if(address == 0)
+			throw new RuntimeException("Null pointer.");
+		Object data = Memory.load(address);
+		return (T) data;
 	}
 	
 	public Pointer<T> dereference(T data) {
@@ -97,5 +105,17 @@ public class Pointer<T> {
 	
 	public boolean isEquals(Pointer<T> num) {
 		return address == num.address;
+	}
+	
+	public static <T> Pointer<T> init(T data) {
+		return Memory.allocate(data);
+	}
+	
+	public static Pointer<Object> from(long address) {
+		return new Pointer<Object>(address);
+	}
+	
+	public static Pointer<Object> from(Address address) {
+		return new Pointer<Object>(address);
 	}
 }
