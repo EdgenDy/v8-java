@@ -1,13 +1,18 @@
 package org.jsengine.v8;
 
+import org.jsengine.v8.base.OS;
 import org.jsengine.v8.base.Mutex;
 import org.jsengine.v8.base.AtomicWord;
 import org.jsengine.v8.base.Bits;
 import org.jsengine.v8.base.RandomNumberGenerator;
 import org.jsengine.v8.base.LeakyObject;
 
+import org.jsengine.v8.PageAllocator;
+
+import org.jsengine.Globals;
 import org.jsengine.Globals.Handle;
 import org.jsengine.utils.Var;
+import org.jsengine.utils.Pointer;
 
 import java.util.function.Function;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -143,4 +148,30 @@ public class Base {
 		if(object == null) object = new LeakyObject<RandomNumberGenerator>(new RandomNumberGenerator());
 		return object.get();
 	}
+	
+	public static long getProtectionFromMemoryPermission(PageAllocator.Permission access) {
+		if (access == PageAllocator.Permission.kNoAccess)
+			return Globals.PAGE_NOACCESS;
+		if (access == PageAllocator.Permission.kRead)
+			return Globals.PAGE_READONLY;
+		if (access == PageAllocator.Permission.kReadWrite)
+			return Globals.PAGE_READWRITE;
+		if (access == PageAllocator.Permission.kReadWriteExecute)
+			return Globals.PAGE_EXECUTE_READWRITE;
+		if (access == PageAllocator.Permission.kReadExecute)
+			return Globals.PAGE_EXECUTE_READ;
+		throw new RuntimeException("unreachable");
+	}
+	
+	public static Pointer<Object> randomizedVirtualAlloc(long size, long flags, long protect, Pointer<Object> hint) {
+		Pointer<Object> base = Globals.nullptr;
+
+		if (protect != Globals.PAGE_READWRITE) {
+			base = Globals.virtualAlloc(hint, size, flags, protect);
+		}
+		
+		return base;
+	}
+	
+	public static double kMaxLoadFactorForRandomization = 0.40;
 }

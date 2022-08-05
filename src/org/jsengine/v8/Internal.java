@@ -11,8 +11,11 @@ import org.jsengine.v8.internal.CallInterfaceDescriptorData;
 import org.jsengine.v8.internal.Address;
 import org.jsengine.v8.base.LeakyObject;
 import org.jsengine.v8.base.OS;
-
+import org.jsengine.Globals;
+import org.jsengine.utils.Pointer;
 import org.jsengine.utils.Var;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 // class representation of v8::internal namespace to hold static methods and static variables
 
@@ -27,7 +30,16 @@ public class Internal {
 	public static int KB = 1024;
 	public static int MB = KB * KB;
 	public static int GB = KB * KB * KB;
+
+	public static int kUInt8Size = 1; // sizeof uint8_t
+	public static int kUInt16Size = 2; // (uint16_t);
+
+	public static int kDoubleSize = 8; // sizeof(double);
+
 	public static int kMaxWasmCodeMB = 1024;
+	public static int kInt32Size = 4;
+	public static int kTaggedSize = kInt32Size;
+	public static int kSystemPointerSize = 8; // 8 is sizeof(void*) in 64 bit windows
 	
 	public static Var<Boolean> FLAG_use_strict = new Var<Boolean>(false);
 	public static Var<Boolean> FLAGDEFAULT_use_strict = new Var<Boolean>(false);
@@ -136,6 +148,8 @@ public class Internal {
 	public static Var<Integer> FLAG_wasm_max_code_space = new Var<Integer>(kMaxWasmCodeMB);
 	public static Var<Integer> FLAGDEFAULT_wasm_max_code_space = new Var<Integer>(kMaxWasmCodeMB); 
 	
+	public static Var<Boolean> FLAG_trace_zone_stats = new Var<Boolean>(false);
+	public static Var<Boolean> FLAGDEFAULT_trace_zone_stats = new Var<Boolean>(false); 
 	
 	static {
 		flags = new Flag[] {
@@ -173,12 +187,11 @@ public class Internal {
 			new Flag(Flag.FlagType.TYPE_STRING, "expose_gc_as", FLAG_expose_gc_as, FLAGDEFAULT_expose_gc_as, "expose gc extension under the specified name", false),
 			new Flag(Flag.FlagType.TYPE_STRING, "expose_cputracemark_as", FLAG_expose_cputracemark_as, FLAGDEFAULT_expose_cputracemark_as, "expose cputracemark extension under the specified name", false),
 			new Flag(Flag.FlagType.TYPE_BOOL, "wasm_shared_engine", FLAG_wasm_shared_engine, FLAGDEFAULT_wasm_shared_engine, "shares one wasm engine between all isolates within a process", false),
-			new Flag(Flag.FlagType.TYPE_UINT, "wasm_max_code_space", FLAG_wasm_max_code_space, FLAGDEFAULT_wasm_max_code_space, "maximum committed code space for wasm (in MB)", false)
+			new Flag(Flag.FlagType.TYPE_UINT, "wasm_max_code_space", FLAG_wasm_max_code_space, FLAGDEFAULT_wasm_max_code_space, "maximum committed code space for wasm (in MB)", false),
+			new Flag(Flag.FlagType.TYPE_BOOL, "trace_zone_stats", FLAG_trace_zone_stats, FLAGDEFAULT_trace_zone_stats, "trace zone memory usage", false)
 		};
 		num_flags = flags.length;
 	}
-	
-	
 	
 	public static int flag_hash = 0;
 	
@@ -317,19 +330,33 @@ public class Internal {
 	
 	public static int kAllocationTries = 2;
 	
-	/*
-	public static Object allocatePages(PageAllocator page_allocator, Object address, int size, int alignment, PageAllocator.Permission access) {
-		Object result = null;
+	public static Pointer<Object> allocatePages(PageAllocator page_allocator, Pointer<Object> hint, long size, long alignment, PageAllocator.Permission access) {
+		Pointer<Object> result = Globals.nullptr;
 		for (int i = 0; i < kAllocationTries; ++i) {
 			result = page_allocator.allocatePages(hint, size, alignment, access);
+			System.out.println("Internal::result: " + result.getValue());
 			if (result != null) break;
-			int request_size = size + alignment - page_allocator.allocatePageSize();
+			long request_size = size + alignment - page_allocator.allocatePageSize();
 			//if (!OnCriticalMemoryPressure(request_size)) break;
 		}
 		return result;
-	}*/
+	}
 	
-	public static long kPtrComprHeapReservationSize = ((long) 4) * GB;
+	public static boolean freePages(PageAllocator page_allocator, Pointer<Object> address, long size) {
+		return page_allocator.freePages(address, size);
+	}
+	
+	public static long kPtrComprHeapReservationSize = 4L * GB;
 	public static long kPtrComprIsolateRootBias = kPtrComprHeapReservationSize / 2;
-	public static long kPtrComprIsolateRootAlignment = ((long) 4) * GB;
+	public static long kPtrComprIsolateRootAlignment = 4L * GB;
+	
+	public static boolean setPermissions(PageAllocator page_allocator, Pointer<Object> address, long size, PageAllocator.Permission access) {
+		return page_allocator.setPermissions(address, size, access);
+	}
+	
+	public static AtomicInteger isolate_counter = new AtomicInteger(0);
+	
+	public static boolean V8_SFI_HAS_UNIQUE_ID = false;
+	public static boolean TAGGED_SIZE_8_BYTES = false;
+	public static boolean V8_DOUBLE_FIELDS_UNBOXING = false;
 }
